@@ -67,7 +67,7 @@ function Landing() {
             <GiLoincloth /> Browse Items
           </Link>
           <Link
-            to="/dashboard"
+            to="/item/1"
             className="bg-[#FE7743] text-[1vw] flex items-center gap-2 duration-[0.2s] text-white px-6 py-3 hover:bg-transparent hover:text-[#FE7743] border-2 border-[#FE7743]"
           >
             <RiSwap2Fill /> Start Swapping

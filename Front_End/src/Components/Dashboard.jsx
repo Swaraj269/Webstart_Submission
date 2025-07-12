@@ -79,16 +79,16 @@ function Dashboard() {
 
   return (
     <>
-      <div className='w-full h-screen p-3'>
-        <div className='w-full h-full bg-gray-100 rounded-[10px] overflow-hidden'>
+      <div className='w-full h-screen pt-[6vw] px-[2.2vw]'>
+        <div className='w-full h-full overflow-hidden'>
 
           {/* profile section */}
-        <div className='w-full h-[40%] flex'>
+        <div className='w-full h-[43%] flex'>
 
           <div className='h-full w-[50%] sm:w-[40%] flex p-3 '>
             {/* User photo */}
-            <div className='profilephoto h-[170px] w-[170px] rounded-full'>
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUWIncXI5vSSiypVSkGTQ6Q_F6mUR-iuEYpQ&s" alt=""  className='h-full w-full object-cover rounded-full'/>
+            <div className='profilephoto h-[13vw] w-[13vw] overflow-hidden rounded-full'>
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUWIncXI5vSSiypVSkGTQ6Q_F6mUR-iuEYpQ&s" alt=""  className='h-full w-full object-cover'/>
             </div>
           </div>
 
