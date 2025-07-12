@@ -115,10 +115,10 @@ function Login({onLoginSuccess}) {
   
 
   return (
-    <div className=' h-screen w-screen flex items-center justify-center  bg-gray-400 '>
+    <div className=' h-screen w-screen flex items-center justify-center  bg-white '>
     
-    <div className="w-full max-w-md bg-gray-200 rounded-xl shadow-2xl mx-2 sm:p-6 md:px-10  border border-gray-200 transform transition-all duration-300 ease-in-out hover:scale-[1.02]">
-      <h2 className="text-3xl font-extrabold text-gray-800 text-center mb-1">
+    <div className="w-full max-w-md bg-gray-100 rounded-xl shadow-2xl mx-2 sm:p-6 md:px-10  border border-gray-200 transform transition-all duration-300 ease-in-out hover:scale-[1.02]">
+      <h2 className="text-3xl font-extrabold text-[#FE7743] text-center mb-1">
         {isLogin ? 'Login' : 'Create Account'}
       </h2>
 
@@ -255,7 +255,7 @@ function Login({onLoginSuccess}) {
         <div>
           <button
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:scale-[1.01] cursor-pointer"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-semibold text-white bg-[#FE7743] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:scale-[1.01] cursor-pointer"
           >
             {isLogin ? 'Sign in' : 'Sign up'}
           </button>

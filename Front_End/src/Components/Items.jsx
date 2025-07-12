@@ -21,7 +21,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 space-y-8">
+    <div className="min-h-screen bg-white text-black p-8 space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="text-sm border border-white px-2 py-1 rounded">Logo</div>
@@ -30,13 +30,13 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Navigation and Search */}
-      <div className="flex items-center border border-white rounded">
+      <div className="flex items-center  ">
         <input
           type="text"
           placeholder="Search"
-          className="bg-black text-white p-3 flex-grow outline-none"
+          className="border border-black text-black p-3 flex-grow outline-none"
         />
-        <button className="p-3 border-l border-white">
+        <button className="p-3 border cursor-pointer border-black">
           <span className="material-icons">search</span>
         </button>
       </div>
@@ -51,7 +51,7 @@ export default function ProductDetailPage() {
               type="file"
               accept="image/*"
               onChange={(e) => setImageFile(e.target.files[0])}
-              className="w-full text-white"
+              className="w-full text-black"
             />
           </div>
 
@@ -61,7 +61,7 @@ export default function ProductDetailPage() {
               type="text"
               value={imageTitle}
               onChange={(e) => setImageTitle(e.target.value)}
-              className="w-full p-3 bg-black text-white border border-white rounded"
+              className="w-full p-3 bg-white  text-black border border-black "
               placeholder="Image Title"
             />
           </div>
@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full h-40 p-3 bg-black text-white border border-white rounded"
+              className="w-full h-40 p-3 bg-white  text-black border border-black "
               placeholder="Description"
             />
           </div>
@@ -81,7 +81,7 @@ export default function ProductDetailPage() {
         <div className="flex items-start justify-end">
           <button
             onClick={handleAddListing}
-            className="border border-white px-6 py-3 rounded text-lg"
+            className="border border-black cursor-pointer px-6 py-3  text-lg"
           >
             Available/Swap
           </button>

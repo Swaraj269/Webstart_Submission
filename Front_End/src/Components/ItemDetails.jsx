@@ -57,51 +57,55 @@ export default function ItemDetails() {
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen p-6">
+    <div className="bg-white text-white min-h-screen p-6">
       <h1 className="text-3xl font-semibold text-center mb-6">Item Listing</h1>
-      <div className="flex justify-between items-center bg-gray-800 p-4 rounded-md mb-6">
+      <div className="flex justify-between items-center bg-[#FE7743]  p-4 mb-6">
         <input
           type="text"
           placeholder="Search item..."
-          className="bg-gray-700 px-4 py-2 rounded-md w-2/3 outline-none"
+          className="bg-white text-black px-4 py-2 w-2/3 outline-none"
         />
-        <button className="bg-gray-600 px-4 py-2 rounded-md">🔍</button>
+        <button className="bg-white cursor-pointer text-black px-4 py-2 ">
+          Search
+        </button>
       </div>
 
       {/* Main section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-800 p-4 rounded-md flex justify-center items-center">
+        <div className="bg-[#FE7743] p-4 rounded-md flex justify-center items-center">
           <img
             src={mainImg}
             alt="Main Item"
-            className="rounded-md object-contain w-full h-96 bg-gray-700"
+            className="rounded-md object-contain w-full h-96 bg-gray-200"
           />
         </div>
 
-        <div className="bg-gray-800 p-4 rounded-md space-y-4">
+        <div className="bg-transparent border border-[#FE7743] p-4  text-black rounded-md space-y-4">
           <h2 className="text-xl font-bold">Product Name</h2>
-          <p className="text-gray-400">
-            This is a detailed description of the product with relevant features,
-            condition, and usage instructions.
+          <p className="">
+            This is a detailed description of the product with relevant
+            features, condition, and usage instructions.
           </p>
 
-          <div className="text-sm text-gray-300">
+          <div className="text-sm ">
             <strong>Uploaded By:</strong> Felix Jayaprakash
           </div>
 
           <div className="flex gap-4">
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2  hover:bg-blue-700"
             >
               Swap Request
             </button>
-            <button className="bg-green-600 px-4 py-2 rounded-md hover:bg-green-700">
+            <button className="bg-green-600 text-white px-4 py-2  hover:bg-green-700">
               Redeem via Points
             </button>
           </div>
 
-          <div className="text-sm text-green-400 font-semibold">✅ Available</div>
+          <div className="text-sm text-green-400 font-semibold">
+            ✅ Available
+          </div>
         </div>
       </div>
 
@@ -110,7 +114,7 @@ export default function ItemDetails() {
         <h3 className="text-xl font-semibold mb-4">Product Images</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {gallery.map((img, idx) => (
-            <div key={idx} className="bg-gray-800 p-2 rounded-md text-center">
+            <div key={idx} className="bg-[#FE7743] p-2 rounded-md text-center">
               <img
                 src={img}
                 alt={`Product ${idx + 1}`}
@@ -121,28 +125,34 @@ export default function ItemDetails() {
           ))}
         </div>
         <div ref={sentinelRef} className="h-6" />
-        {loading && <p className="text-center text-gray-400 mt-2">Loading more...</p>}
+        {loading && (
+          <p className="text-center text-gray-400 mt-2">Loading more...</p>
+        )}
       </div>
 
       {/* ⬇️ Swap Request Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md space-y-4">
-            <h2 className="text-xl font-semibold text-white mb-2">Swap Request</h2>
+        <div className="fixed inset-0 bg-white bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#FE7743]  p-6 w-full max-w-md space-y-4">
+            <h2 className="text-xl font-semibold text-white mb-2">
+              Swap Request
+            </h2>
 
             <input
               type="text"
               placeholder="Title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full p-2 rounded-md bg-gray-700 text-white outline-none"
+              className="w-full p-2  bg-white text-black outline-none"
             />
 
             <textarea
               placeholder="Description"
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-2 rounded-md bg-gray-700 text-white outline-none"
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              className="w-full p-2  bg-white text-black outline-none"
               rows="3"
             />
 
@@ -150,18 +160,18 @@ export default function ItemDetails() {
               type="file"
               accept="image/*"
               onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-              className="text-gray-300"
+              className="text-white"
             />
 
             <div className="flex justify-end gap-2">
               <button
-                className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-700"
+                className="px-4 py-2 bg-gray-600  hover:bg-gray-700"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600  hover:bg-blue-700"
                 onClick={handleSendRequest}
               >
                 Send Request
