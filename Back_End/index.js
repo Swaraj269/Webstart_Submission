@@ -1,148 +1,238 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
-import mysql from "mysql2"
-import bcrypt from "bcrypt"
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mysql from "mysql2/promise";  
+import bcrypt from "bcrypt";
 
-dotenv.config()
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: process.env.DB_user,
-  password: process.env.DB_pass,
-  database: process.env.DB_name, 
-});
+dotenv.config();
 
-const app= express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5174',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('MySQL Connected.');
+// Create connection pool (better than single connection for promises)
+const db = await mysql.createPool({
+  host: 'localhost',
+  user: process.env.DB_user,
+  password: process.env.DB_pass,
+  database: process.env.DB_name
 });
 
+// REGISTER endpoint
 app.post('/register', async (req, res) => {
-    console.log("Received request at /register");
   const { name, email, phone, password, confirmPassword } = req.body;
-  console.log(req.body); 
   if (password !== confirmPassword) {
     return res.status(400).send("Passwords do not match");
   }
 
   try {
-    db.query(
+    const [existing] = await db.query(
       'SELECT * FROM users WHERE email = ? OR phone = ?',
-      [email, phone],
-      async (err, results) => {
-        if (err) return res.status(500).send("Server error");
-
-        if (results.length > 0) {
-          return res.status(400).send("User with this email or phone already exists");
-        }
-
-        const hash = await bcrypt.hash(password, 10);
-
-        db.query(
-          'INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)',
-          [name, email, phone, hash],
-          (err) => {
-            if (err) return res.status(500).send("Failed to insert user");
-            res.status(201).json({ message: "User registered successfully", redirectTo: "/dashboard" });
-          }
-        );
-      }
+      [email, phone]
     );
+
+    if (existing.length > 0) {
+      return res.status(400).send("User with this email or phone already exists");
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await db.query(
+      'INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)',
+      [name, email, phone, hash]
+    );
+
+    res.status(201).json({ message: "User registered successfully", redirectTo: "/dashboard" });
   } catch (err) {
-    res.status(500).send("Unexpected server error");
+    console.error("Error in /register:", err);
+    res.status(500).send("Server error");
   }
 });
 
-app.post('/login', (req, res) => {
+// LOGIN endpoint
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log("Login attempt:", email);
 
-  db.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email],
-    async (err, results) => {
-      if (err) return res.status(500).send("Server error");
+  try {
+    const [results] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
-      if (results.length === 0) {
-        return res.status(401).send("Invalid email or password");
-      }
+    console.log("DB results:", results);  // ← Add this line
 
-      const user = results[0];
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).send("Invalid email or password");
-      }
-      res.status(200).json({
-        message: "Login successful",
-        redirectTo: "/dashboard",
-        userId: user.id  
-      });
-
+    if (results.length === 0) {
+      console.log("No user found");
+      return res.status(401).send("Invalid email or password");
     }
-  );
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      console.log("Password mismatch");
+      return res.status(401).send("Invalid email or password");
+    }
+
+    console.log("Login successful");
+    res.status(200).json({
+      message: "Login successful",
+      redirectTo: "/dashboard",
+      userId: user.id
+    });
+
+  } catch (err) {
+    console.error("Error in /login:", err);
+    res.status(500).send("Server error");
+  }
 });
 
-app.get('/dashboard', (req, res) => {
-  const userId = req.query.userId; 
+// DASHBOARD endpoint
+app.get('/dashboard', async (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ message: 'Missing userId' });
 
-  if (!userId) {
-    return res.status(400).json({ message: 'Missing userId' });
-  }
-
-  const getUser = `SELECT id, name, email, phone FROM users WHERE id = ?`;
-  db.query(getUser, [userId], (err, userResults) => {
-    if (err) return res.status(500).send("Error fetching user");
+  try {
+    const [userResults] = await db.query(
+      `SELECT id, name, email, phone FROM users WHERE id = ?`,
+      [userId]
+    );
 
     if (userResults.length === 0) {
       return res.status(404).send("User not found");
     }
 
     const user = userResults[0];
-    console.log(user)
 
-    const getListings = `SELECT id, title, description, image_url FROM listings WHERE seller_id = ?`;
-    db.query(getListings, [userId], (err, listings) => {
-      if (err) return res.status(500).send("Error fetching listings");
+    const [listings] = await db.query(
+      `SELECT id, title, description, image_url FROM listings WHERE seller_id = ?`,
+      [userId]
+    );
 
-      const getPurchases = `
-        SELECT p.id AS purchase_id, l.title, l.description, l.image_url, p.purchase_date
-        FROM purchases p
-        JOIN listings l ON p.listing_id = l.id
-        WHERE p.buyer_id = ?
-      `;
-      db.query(getPurchases, [userId], (err, purchases) => {
-        if (err) return res.status(500).send("Error fetching purchases");
+    const [purchases] = await db.query(
+      `SELECT p.id AS purchase_id, l.title, l.description, l.image_url, p.purchase_date
+       FROM purchases p
+       JOIN listings l ON p.listing_id = l.id
+       WHERE p.buyer_id = ?`,
+      [userId]
+    );
 
-        res.json({
-          user,
-          listings,
-          purchases
-        });
-      });
+    res.json({
+      user,
+      listings,
+      purchases
     });
-  });
+  } catch (err) {
+    console.error("Error in /dashboard:", err);
+    res.status(500).send("Error fetching dashboard data");
+  }
 });
 
-app.get('/items', (req, res) => {
-  const query = 'SELECT id, title, description, image_url, seller_id FROM listings';
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching listings:", err);
-      return res.status(500).send("Error fetching listings");
-    }
+// LISTINGS endpoint
+app.get('/items', async (req, res) => {
+  try {
+    const [results] = await db.query(
+      'SELECT id, title, description, image_url, seller_id FROM listings'
+    );
 
     res.status(200).json({ listings: results });
-  });
+  } catch (err) {
+    console.error("Error fetching listings:", err);
+    res.status(500).send("Error fetching listings");
+  }
 });
 
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.get('/admin', async (req, res) => {
+  const adminId = req.query.adminId;
+  if (!adminId) return res.status(400).json({ message: 'Missing adminId' });
+
+  try {
+    
+    const [adminCheck] = await db.query(
+      'SELECT is_admin FROM users WHERE id = ?',
+      [adminId]
+    );
+
+    if (adminCheck.length === 0 || !adminCheck[0].is_admin) {
+      return res.status(403).json({ message: 'Access denied: Not an admin' });
+    }
+
+    const [users] = await db.query(
+      'SELECT id, name, email, phone, is_admin FROM users'
+    );
+
+    const [listings] = await db.query(
+      'SELECT id, title, description, image_url, seller_id FROM listings'
+    );
+
+    res.status(200).json({ users, listings });
+  } catch (err) {
+    console.error("Error in /admin GET:", err);
+    res.status(500).send("Error fetching admin data");
+  }
+});
+
+app.delete('/admin/user/:id', async (req, res) => {
+  const adminId = req.query.adminId;
+  const userId = req.params.id;
+
+  try {
+    const [adminCheck] = await db.query(
+      'SELECT is_admin FROM users WHERE id = ?',
+      [adminId]
+    );
+
+    if (adminCheck.length === 0 || !adminCheck[0].is_admin) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    //delete user's listings and purchases first to avoid foreign key issues
+    await db.query('DELETE FROM purchases WHERE buyer_id = ?', [userId]);
+    await db.query('DELETE FROM listings WHERE seller_id = ?', [userId]);
+    await db.query('DELETE FROM users WHERE id = ?', [userId]);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).send("Error deleting user");
+  }
+});
+
+// Delete listing
+app.delete('/admin/listing/:id', async (req, res) => {
+  const adminId = req.query.adminId;
+  const listingId = req.params.id;
+
+  try {
+    const [adminCheck] = await db.query(
+      'SELECT is_admin FROM users WHERE id = ?',
+      [adminId]
+    );
+
+    if (adminCheck.length === 0 || !adminCheck[0].is_admin) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    //delete related purchases first
+    await db.query('DELETE FROM purchases WHERE listing_id = ?', [listingId]);
+    await db.query('DELETE FROM listings WHERE id = ?', [listingId]);
+
+    res.json({ message: 'Listing deleted successfully' });
+  } catch (err) {
+    console.error("Error deleting listing:", err);
+    res.status(500).send("Error deleting listing");
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
