@@ -131,5 +131,18 @@ app.get('/dashboard', (req, res) => {
   });
 });
 
+app.get('/items', (req, res) => {
+  const query = 'SELECT id, title, description, image_url, seller_id FROM listings';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching listings:", err);
+      return res.status(500).send("Error fetching listings");
+    }
+
+    res.status(200).json({ listings: results });
+  });
+});
+
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
