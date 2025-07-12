@@ -50,7 +50,7 @@ app.post('/register', async (req, res) => {
           [name, email, phone, hash],
           (err) => {
             if (err) return res.status(500).send("Failed to insert user");
-            res.status(201).json({ message: "User registered successfully" });
+            res.status(201).json({ message: "User registered successfully", redirectTo: "/dashboard" });
           }
         );
       }
@@ -58,6 +58,77 @@ app.post('/register', async (req, res) => {
   } catch (err) {
     res.status(500).send("Unexpected server error");
   }
+});
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  console.log("Login attempt:", email);
+
+  db.query(
+    'SELECT * FROM users WHERE email = ?',
+    [email],
+    async (err, results) => {
+      if (err) return res.status(500).send("Server error");
+
+      if (results.length === 0) {
+        return res.status(401).send("Invalid email or password");
+      }
+
+      const user = results[0];
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).send("Invalid email or password");
+      }
+      res.status(200).json({
+        message: "Login successful",
+        redirectTo: "/dashboard",
+        userId: user.id  
+      });
+
+    }
+  );
+});
+
+app.get('/dashboard', (req, res) => {
+  const userId = req.query.userId; 
+
+  if (!userId) {
+    return res.status(400).json({ message: 'Missing userId' });
+  }
+
+  const getUser = `SELECT id, name, email, phone FROM users WHERE id = ?`;
+  db.query(getUser, [userId], (err, userResults) => {
+    if (err) return res.status(500).send("Error fetching user");
+
+    if (userResults.length === 0) {
+      return res.status(404).send("User not found");
+    }
+
+    const user = userResults[0];
+    console.log(user)
+
+    const getListings = `SELECT id, title, description, image_url FROM listings WHERE seller_id = ?`;
+    db.query(getListings, [userId], (err, listings) => {
+      if (err) return res.status(500).send("Error fetching listings");
+
+      const getPurchases = `
+        SELECT p.id AS purchase_id, l.title, l.description, l.image_url, p.purchase_date
+        FROM purchases p
+        JOIN listings l ON p.listing_id = l.id
+        WHERE p.buyer_id = ?
+      `;
+      db.query(getPurchases, [userId], (err, purchases) => {
+        if (err) return res.status(500).send("Error fetching purchases");
+
+        res.json({
+          user,
+          listings,
+          purchases
+        });
+      });
+    });
+  });
 });
 
 
