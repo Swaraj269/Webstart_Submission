@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 
 export default function ItemDetails() {
-  /* ――― EXISTING STATIC DATA ――― */
   const mainImg = "/images/img5.webp";
 
-  /* ――― NEW: STATE FOR INFINITE GALLERY ――― */
   const PAGE_SIZE = 4;
   const [page, setPage] = useState(1);
   const [gallery, setGallery] = useState([
@@ -16,9 +14,8 @@ export default function ItemDetails() {
   const [loading, setLoading] = useState(false);
   const sentinelRef = useRef(null);
 
-  /* ――― SIMULATED API CALL ――― */
+
   const fetchMore = async (pageNum) => {
-    // TODO: replace with real API
     return new Promise((resolve) => {
       setTimeout(() => {
         const start = pageNum * PAGE_SIZE + 1;
@@ -30,7 +27,6 @@ export default function ItemDetails() {
     });
   };
 
-  /* ――― LOAD NEXT PAGE ――― */
   const loadMore = async () => {
     if (loading) return;
     setLoading(true);
@@ -40,7 +36,6 @@ export default function ItemDetails() {
     setLoading(false);
   };
 
-  /* ――― SET UP OBSERVER ――― */
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => entries[0].isIntersecting && loadMore(),
@@ -50,12 +45,9 @@ export default function ItemDetails() {
     return () => obs.disconnect();
   }, [sentinelRef.current, gallery]);
 
-  /* ――― RENDER ――― */
   return (
     <div className="bg-gray-900 text-white min-h-screen p-6">
       <h1 className="text-3xl font-semibold text-center mb-6">Item Listing</h1>
-
-      {/* Search + header (unchanged) */}
       <div className="flex justify-between items-center bg-gray-800 p-4 rounded-md mb-6">
         <input
           type="text"
@@ -64,8 +56,6 @@ export default function ItemDetails() {
         />
         <button className="bg-gray-600 px-4 py-2 rounded-md">🔍</button>
       </div>
-
-      {/* Main Content (unchanged) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gray-800 p-4 rounded-md flex justify-center items-center">
           <img
@@ -99,7 +89,6 @@ export default function ItemDetails() {
         </div>
       </div>
 
-      {/* ――― INFINITE GALLERY ――― */}
       <div className="mt-10">
         <h3 className="text-xl font-semibold mb-4">Product Images</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -115,7 +104,6 @@ export default function ItemDetails() {
           ))}
         </div>
 
-        {/* Sentinel triggers loadMore when visible */}
         <div ref={sentinelRef} className="h-6" />
         {loading && (
           <p className="text-center text-gray-400 mt-2">Loading more...</p>
